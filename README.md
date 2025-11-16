@@ -1,316 +1,591 @@
 # NeuroSync-MCP
 
-A Developer Productivity AI that plugs into MCP (Model Context Protocol) to automatically understand developer context and provide intelligent assistance.
+**Context-Aware Development Intelligence Platform**
 
-## 🎯 Overview
+NeuroSync-MCP transforms developer productivity by automatically aggregating and synthesizing work context from multiple sources—GitHub activity, local repositories, and team workflows—into actionable intelligence. Built on the Model Context Protocol (MCP), it eliminates context switching and keeps developers in flow.
 
-NeuroSync automatically understands what a developer is working on by pulling real-time work context from:
-- GitHub REST & GraphQL API (FREE tier)
-- Hacker News API (FREE – for focus mode AI suggestions)
-- Local file system context (MCP FS tool)
-- Optional: OpenAI (for summarization + AI agent reasoning)
+---
 
-## 🏗️ Architecture
+## Why NeuroSync?
 
-- **MCP Server** (Node.js/TypeScript): Exposes tools for GitHub, file system operations
-- **Spring Boot Backend** (Java 21): REST API that aggregates context and stores memory
-- **React Frontend** (Vite + TailwindCSS): Dashboard UI for developer productivity
-- **PostgreSQL**: Context snapshots and developer memory
-- **Redis**: Quick memory lookups and caching
+Modern development involves constant context switching: checking GitHub for issues, reviewing PR feedback, tracking commits, and maintaining mental models of your work. NeuroSync eliminates this cognitive overhead by:
 
-## 🚀 Quick Start
+- **Automatic Context Aggregation** — Pulls real-time data from GitHub, local Git repositories, and file systems without manual intervention
+- **Intelligent Memory Layer** — Stores and retrieves contextual snapshots, making it easy to resume work or understand historical decisions
+- **MCP-Native Architecture** — Integrates seamlessly with MCP-enabled editors like Cursor and Windsurf for in-editor intelligence
+- **Zero Configuration Intelligence** — Works with GitHub's free tier; no enterprise subscriptions required
 
-### Prerequisites
+---
 
-- Java 21+
-- Node.js 18+
-- Docker & Docker Compose
-- Maven 3.8+
-- PostgreSQL 15+ (if running locally)
-- Redis 7+ (if running locally)
+## System Architecture
 
-### Getting Started
-
-1. **Clone the repository**
-   ```bash
-   git clone <repository-url>
-   cd neurosync-mcp
-   ```
-
-2. **Set up environment variables**
-   
-   Copy `.env.example` to `.env` and fill in your values:
-   ```bash
-   cp .env.example .env
-   ```
-   
-   **Required:**
-   - `GITHUB_TOKEN`: Create a GitHub Personal Access Token with `repo` scope
-   - `GITHUB_OWNER`: Your GitHub username or organization
-   - `GITHUB_REPO`: Repository name
-   
-   **Optional:**
-   - `OPENAI_API_KEY`: For AI-powered features (summarization, suggestions)
-
-3. **Run with Docker Compose (Recommended)**
-   ```bash
-   docker-compose up -d
-   ```
-   
-   This will start:
-   - PostgreSQL on port 5432
-   - Redis on port 6379
-   - Spring Boot backend on port 8080
-   - MCP server on port 3001
-   - React frontend on port 5173
-
-4. **Access the application**
-   - Frontend: http://localhost:5173
-   - Backend API: http://localhost:8080/api
-   - Health check: http://localhost:8080/api/health
-
-### Running Locally (Without Docker)
-
-#### 1. Start PostgreSQL and Redis
-   ```bash
-   # Using Docker for databases only
-   docker-compose up -d postgres redis
-   ```
-
-#### 2. Backend (Spring Boot)
-   ```bash
-   cd backend
-   mvn clean install
-   mvn spring-boot:run
-   ```
-   
-   The backend will start on http://localhost:8080
-
-#### 3. MCP Server
-   ```bash
-   cd mcp-server
-   npm install
-   npm run build
-   npm start
-   ```
-   
-   The MCP server will run on stdio (for MCP client integration)
-
-#### 4. Frontend
-   ```bash
-   cd frontend
-   npm install
-   npm run dev
-   ```
-   
-   The frontend will start on http://localhost:5173
-
-### Using DevContainer
-
-If you're using VS Code with DevContainers:
-
-1. Open the project in VS Code
-2. Press `F1` and select "Dev Containers: Reopen in Container"
-3. Wait for the container to build and start
-4. All services will be available in the container
-
-## 📁 Project Structure
+NeuroSync follows a clean, distributed architecture designed for scalability and maintainability:
 
 ```
-neurosync-mcp/
-├── backend/                      # Spring Boot application
-│   ├── src/main/java/com/neurosync/
-│   │   ├── controller/          # REST controllers
-│   │   ├── service/             # Business logic
-│   │   ├── repository/          # Data access layer
-│   │   ├── entity/              # JPA entities
-│   │   ├── dto/                 # Data transfer objects
-│   │   └── config/              # Configuration classes
-│   ├── src/main/resources/
-│   │   ├── application.yml      # Spring Boot configuration
-│   │   └── schema.sql           # Database schema
-│   ├── pom.xml
-│   └── Dockerfile
-├── mcp-server/                   # MCP server (Node.js/TypeScript)
-│   ├── src/
-│   │   ├── index.ts             # MCP server entry point
-│   │   └── tools/               # MCP tools implementation
-│   │       ├── githubTools.ts   # GitHub API tools
-│   │       └── fsTools.ts       # File system tools
-│   ├── package.json
-│   ├── tsconfig.json
-│   └── Dockerfile
-├── frontend/                     # React application
-│   ├── src/
-│   │   ├── components/          # React components
-│   │   ├── services/            # API client
-│   │   ├── App.tsx
-│   │   └── main.tsx
-│   ├── package.json
-│   ├── vite.config.ts
-│   ├── tailwind.config.js
-│   └── Dockerfile
-├── .devcontainer/                # DevContainer configuration
-│   └── devcontainer.json
-├── docker-compose.yml            # Docker Compose configuration
-├── .env.example                  # Environment variables template
-└── README.md
+┌─────────────────────────────────────────────────────────────┐
+│                      MCP Client Layer                        │
+│                 (Cursor, Windsurf, Claude)                   │
+└────────────────────────┬────────────────────────────────────┘
+                         │
+                         ▼
+┌─────────────────────────────────────────────────────────────┐
+│                    MCP Server (Node.js)                      │
+│  ┌──────────────┐  ┌──────────────┐  ┌──────────────┐      │
+│  │ GitHub Tools │  │  FS Tools    │  │  Git Tools   │      │
+│  └──────────────┘  └──────────────┘  └──────────────┘      │
+└────────────────────────┬────────────────────────────────────┘
+                         │
+                         ▼
+┌─────────────────────────────────────────────────────────────┐
+│              Spring Boot REST API (Java 21)                  │
+│  ┌────────────────────────────────────────────────┐         │
+│  │  Context Aggregation • Memory Storage • APIs   │         │
+│  └────────────────────────────────────────────────┘         │
+└───────────┬─────────────────────────┬───────────────────────┘
+            │                         │
+            ▼                         ▼
+   ┌────────────────┐        ┌────────────────┐
+   │   PostgreSQL   │        │     Redis      │
+   │  (Persistence) │        │   (Caching)    │
+   └────────────────┘        └────────────────┘
 ```
 
-## 🔧 Features
+**Technology Stack:**
+- **Backend**: Spring Boot 3.x (Java 21), PostgreSQL 15+, Redis 7+
+- **MCP Layer**: Node.js 18+, TypeScript 5.x
+- **Frontend**: React 18, Vite 5, TailwindCSS 3.x
+- **Infrastructure**: Docker, Docker Compose
 
-### MCP Server Tools
-- `getGitHubIssues(repo)`: Fetch GitHub issues
-- `getRecentCommits(repo/branch)`: Get recent commits
-- `writeToFile(filepath, text)`: Write to file system
-- `readActiveBranch(repoPath)`: Read active Git branch
+---
 
-### Backend Endpoints
+## Prerequisites
 
-#### GET `/api/context`
-Get aggregated developer context including GitHub issues, commits, and recent snapshots.
+| Requirement | Version | Purpose |
+|------------|---------|---------|
+| Java | 21+ | Spring Boot backend runtime |
+| Node.js | 18+ | MCP server and frontend tooling |
+| Docker | 20+ | Containerized deployment |
+| Maven | 3.8+ | Backend dependency management |
+| PostgreSQL | 15+ | Context persistence layer |
+| Redis | 7+ | High-speed caching and memory lookups |
+
+**Access Requirements:**
+- GitHub Personal Access Token (PAT) with `repo` scope
+- Repository access permissions for target GitHub repos
+
+---
+
+## Installation & Setup
+
+### Option 1: Docker Compose (Recommended)
+
+The fastest path to a running system. All services are orchestrated automatically.
+
+```bash
+# Clone repository
+git clone <repository-url>
+cd neurosync-mcp
+
+# Configure environment
+cp .env.example .env
+# Edit .env with your GitHub token and repository details
+
+# Launch all services
+docker-compose up -d
+
+# Verify deployment
+curl http://localhost:8080/api/health
+```
+
+**Service Endpoints:**
+- Frontend Dashboard: `http://localhost:5173`
+- Backend API: `http://localhost:8080/api`
+- PostgreSQL: `localhost:5432`
+- Redis: `localhost:6379`
+
+### Option 2: Local Development Setup
+
+For active development or debugging, run services individually.
+
+```bash
+# 1. Start data layer
+docker-compose up -d postgres redis
+
+# 2. Backend API
+cd backend
+mvn clean install
+mvn spring-boot:run
+# Runs on http://localhost:8080
+
+# 3. MCP Server
+cd ../mcp-server
+npm install && npm run build
+npm start
+# Communicates via stdio with MCP clients
+
+# 4. Frontend Dashboard
+cd ../frontend
+npm install && npm run dev
+# Runs on http://localhost:5173
+```
+
+### Option 3: VS Code DevContainer
+
+Fully configured development environment with all dependencies pre-installed.
+
+1. Open project in VS Code
+2. Command Palette → **Dev Containers: Reopen in Container**
+3. Wait for container initialization
+4. All services start automatically
+
+---
+
+## Configuration
+
+### Environment Variables
+
+Create a `.env` file in the project root:
+
+```bash
+# GitHub Integration (Required)
+GITHUB_TOKEN=ghp_your_personal_access_token_here
+GITHUB_OWNER=your-username-or-org
+GITHUB_REPO=repository-name
+
+# OpenAI Integration (Optional - enables AI features)
+OPENAI_API_KEY=sk-your-openai-api-key
+
+# Database Configuration (Docker defaults)
+POSTGRES_HOST=localhost
+POSTGRES_PORT=5432
+POSTGRES_DB=neurosync
+POSTGRES_USER=neurosync
+POSTGRES_PASSWORD=your-secure-password
+
+# Redis Configuration
+REDIS_HOST=localhost
+REDIS_PORT=6379
+
+# Application Settings
+SPRING_PROFILES_ACTIVE=dev
+LOG_LEVEL=INFO
+```
+
+### GitHub Token Permissions
+
+Required scopes for your GitHub PAT:
+- `repo` — Full repository access (read issues, commits, branches)
+- `read:user` — Basic user profile information
+
+Generate at: https://github.com/settings/tokens/new
+
+---
+
+## API Reference
+
+### Context Aggregation
+
+**Endpoint:** `GET /api/context`
+
+Retrieves comprehensive developer context including active work, recent changes, and issue tracking.
 
 **Query Parameters:**
-- `branch` (optional): Filter by Git branch name
+```
+branch (optional) — Filter context by Git branch name
+```
 
-**Response:**
+**Response Schema:**
 ```json
 {
-  "activeBranch": "main",
-  "isClean": true,
-  "lastCommit": "abc1234",
-  "issues": [...],
-  "commits": [...],
+  "activeBranch": "feature/auth-refactor",
+  "isClean": false,
+  "lastCommit": "a3f8c91",
+  "uncommittedChanges": 3,
+  "issues": [
+    {
+      "number": 142,
+      "title": "Refactor authentication middleware",
+      "state": "open",
+      "assignee": "developer",
+      "labels": ["enhancement", "backend"]
+    }
+  ],
+  "commits": [
+    {
+      "hash": "a3f8c91",
+      "message": "Add JWT token validation",
+      "author": "Developer Name",
+      "timestamp": "2024-01-15T14:23:00Z",
+      "filesChanged": 5
+    }
+  ],
   "recentSnapshots": [...],
-  "timestamp": "2024-01-01T12:00:00"
+  "timestamp": "2024-01-15T15:00:00Z"
 }
 ```
 
-#### POST `/api/memory`
-Store a context snapshot in the database.
+### Memory Storage
+
+**Endpoint:** `POST /api/memory`
+
+Persists a context snapshot for future retrieval and analysis.
 
 **Request Body:**
 ```json
 {
-  "issueNumber": 123,
-  "commitHash": "abc1234",
-  "branch": "main",
-  "summary": "Fixed bug in authentication",
+  "issueNumber": 142,
+  "commitHash": "a3f8c91",
+  "branch": "feature/auth-refactor",
+  "summary": "Completed JWT middleware implementation",
   "metadata": {
-    "filesChanged": ["src/auth.js"],
-    "linesAdded": 50,
-    "linesRemoved": 20
+    "filesChanged": ["src/middleware/auth.js", "src/utils/jwt.js"],
+    "linesAdded": 87,
+    "linesRemoved": 12,
+    "testsCovered": true
   }
 }
 ```
 
-#### GET `/api/memory`
-Retrieve context history.
-
-**Query Parameters:**
-- `branch` (optional): Filter by branch name
-- `hours` (optional, default: 24): Number of hours to look back
-
-#### GET `/api/health`
-Health check endpoint.
-
-### Frontend Dashboard
-- Active branch display
-- Open PRs list
-- Assigned issues
-- Code history timeline
-- AI-powered actions (commit message generation, progress summarization)
-
-## 🗄️ Database Schema
-
-The `developer_context` table stores context snapshots:
-
-```sql
-CREATE TABLE developer_context (
-    id UUID PRIMARY KEY,
-    timestamp TIMESTAMP NOT NULL,
-    issue_number INTEGER,
-    commit_hash VARCHAR(255),
-    branch VARCHAR(255),
-    summary TEXT,
-    metadata JSONB
-);
+**Response:**
+```json
+{
+  "id": "550e8400-e29b-41d4-a716-446655440000",
+  "stored": true,
+  "timestamp": "2024-01-15T15:00:00Z"
+}
 ```
 
-## 🔌 MCP Integration
+### Memory Retrieval
 
-The MCP server exposes the following tools that can be used by MCP clients (like Cursor, Windsurf):
+**Endpoint:** `GET /api/memory`
 
-1. **getGitHubIssues**: Fetch GitHub issues for a repository
-2. **getRecentCommits**: Get recent commits for a branch
-3. **readActiveBranch**: Read the active Git branch from local repository
-4. **writeToFile**: Write content to a file
-5. **readFromFile**: Read content from a file
+Query historical context snapshots with time-based filtering.
 
-### Using with Cursor/Windsurf
+**Query Parameters:**
+```
+branch (optional) — Filter by branch name
+hours (optional, default: 24) — Lookback window in hours
+limit (optional, default: 50) — Maximum results
+```
 
-1. Configure the MCP server in your editor's settings
-2. The server will be available as a tool provider
-3. Use the tools through your editor's command palette
+### Health & Status
 
-## 🧪 Development
+**Endpoint:** `GET /api/health`
 
-### Building the Project
+System health check for monitoring and orchestration.
+
+**Response:**
+```json
+{
+  "status": "UP",
+  "components": {
+    "database": "UP",
+    "redis": "UP",
+    "github": "UP"
+  },
+  "timestamp": "2024-01-15T15:00:00Z"
+}
+```
+
+---
+
+## MCP Integration
+
+NeuroSync exposes intelligent tools through the Model Context Protocol for seamless editor integration.
+
+### Available Tools
+
+| Tool Name | Purpose | Parameters |
+|-----------|---------|------------|
+| `getGitHubIssues` | Fetch repository issues | `repo: string` |
+| `getRecentCommits` | Retrieve commit history | `repo: string, branch?: string` |
+| `readActiveBranch` | Get current Git branch | `repoPath: string` |
+| `writeToFile` | Write file system content | `filepath: string, content: string` |
+| `readFromFile` | Read file system content | `filepath: string` |
+
+### Editor Configuration
+
+**Cursor / Windsurf:**
+
+Add to your MCP settings (`.cursor/mcp.json` or equivalent):
+
+```json
+{
+  "mcpServers": {
+    "neurosync": {
+      "command": "node",
+      "args": ["./mcp-server/dist/index.js"],
+      "env": {
+        "GITHUB_TOKEN": "your_token_here",
+        "GITHUB_OWNER": "your_username",
+        "GITHUB_REPO": "your_repo"
+      }
+    }
+  }
+}
+```
+
+Access tools via editor command palette or AI assistant integration.
+
+---
+
+## Development Workflow
+
+### Building from Source
 
 ```bash
-# Build backend
+# Backend (Spring Boot)
 cd backend
 mvn clean package
+# Output: target/neurosync-backend-1.0.0.jar
 
-# Build MCP server
-cd ../mcp-server
+# MCP Server (TypeScript)
+cd mcp-server
 npm run build
+# Output: dist/
 
-# Build frontend
-cd ../frontend
+# Frontend (React)
+cd frontend
 npm run build
+# Output: dist/
 ```
 
 ### Running Tests
 
 ```bash
-# Backend tests
+# Backend unit & integration tests
 cd backend
 mvn test
+mvn verify
 
-# Frontend tests (when added)
-cd ../frontend
+# Frontend tests (when available)
+cd frontend
 npm test
+
+# End-to-end tests (when available)
+npm run test:e2e
 ```
 
-### Code Style
+### Code Quality Standards
 
-- **Backend**: Follow Spring Boot conventions and Java 21 features
-- **MCP Server**: Use TypeScript strict mode, ES modules
-- **Frontend**: Use React functional components with TypeScript
+**Backend (Java):**
+- Java 21 language features encouraged (records, pattern matching, virtual threads)
+- Spring Boot best practices (dependency injection, configuration properties)
+- Layered architecture (controller → service → repository)
+- Comprehensive Javadoc for public APIs
 
-## 🐛 Troubleshooting
+**MCP Server (TypeScript):**
+- Strict TypeScript mode enabled
+- ES modules throughout
+- Async/await for all I/O operations
+- Type-safe MCP tool definitions
 
-### Backend won't start
-- Check PostgreSQL is running: `docker ps`
-- Verify database credentials in `.env`
-- Check logs: `docker-compose logs backend`
+**Frontend (React):**
+- Functional components exclusively
+- TypeScript for all components
+- Tailwind utility classes (no custom CSS)
+- Accessibility-first design
 
-### MCP server errors
+---
+
+## Project Structure
+
+```
+neurosync-mcp/
+├── backend/                          # Spring Boot REST API
+│   ├── src/main/java/com/neurosync/
+│   │   ├── controller/              # HTTP endpoint handlers
+│   │   ├── service/                 # Business logic layer
+│   │   ├── repository/              # JPA data access
+│   │   ├── entity/                  # Database models
+│   │   ├── dto/                     # API data contracts
+│   │   └── config/                  # Spring configuration
+│   ├── src/main/resources/
+│   │   ├── application.yml          # Spring Boot config
+│   │   └── schema.sql               # Database DDL
+│   └── pom.xml                      # Maven dependencies
+│
+├── mcp-server/                       # MCP protocol server
+│   ├── src/
+│   │   ├── index.ts                 # Server entry point
+│   │   └── tools/                   # MCP tool implementations
+│   │       ├── githubTools.ts       # GitHub API integration
+│   │       ├── fsTools.ts           # File system operations
+│   │       └── gitTools.ts          # Git repository tools
+│   ├── package.json
+│   └── tsconfig.json
+│
+├── frontend/                         # React dashboard
+│   ├── src/
+│   │   ├── components/              # React UI components
+│   │   ├── services/                # API client layer
+│   │   ├── hooks/                   # Custom React hooks
+│   │   ├── App.tsx                  # Application root
+│   │   └── main.tsx                 # Entry point
+│   ├── vite.config.ts
+│   └── tailwind.config.js
+│
+├── .devcontainer/                    # VS Code DevContainer
+├── docker-compose.yml                # Orchestration config
+├── .env.example                      # Environment template
+└── README.md
+```
+
+---
+
+## Database Schema
+
+**Table: `developer_context`**
+
+Stores contextual snapshots of developer activity for memory and analysis.
+
+```sql
+CREATE TABLE developer_context (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    timestamp TIMESTAMP NOT NULL DEFAULT NOW(),
+    issue_number INTEGER,
+    commit_hash VARCHAR(255),
+    branch VARCHAR(255) NOT NULL,
+    summary TEXT NOT NULL,
+    metadata JSONB,
+    created_at TIMESTAMP NOT NULL DEFAULT NOW(),
+    updated_at TIMESTAMP NOT NULL DEFAULT NOW(),
+    
+    INDEX idx_branch (branch),
+    INDEX idx_timestamp (timestamp DESC),
+    INDEX idx_issue (issue_number),
+    INDEX idx_commit (commit_hash)
+);
+```
+
+**JSONB Metadata Structure:**
+```json
+{
+  "filesChanged": ["src/auth.js", "tests/auth.test.js"],
+  "linesAdded": 150,
+  "linesRemoved": 45,
+  "testsCovered": true,
+  "reviewers": ["alice", "bob"],
+  "tags": ["security", "refactor"]
+}
+```
+
+---
+
+## Troubleshooting
+
+### Backend Issues
+
+**Symptom:** Backend fails to start
+```bash
+# Check database connectivity
+docker-compose logs postgres
+
+# Verify environment variables
+cat .env | grep POSTGRES
+
+# Test database connection
+psql -h localhost -U neurosync -d neurosync
+```
+
+**Symptom:** GitHub API rate limit exceeded
+- GitHub's free tier: 60 requests/hour (unauthenticated), 5000/hour (authenticated)
 - Verify `GITHUB_TOKEN` is set correctly
-- Check GitHub API rate limits
-- Review MCP server logs
+- Check rate limit status: `curl -H "Authorization: token $GITHUB_TOKEN" https://api.github.com/rate_limit`
 
-### Frontend can't connect to backend
-- Verify backend is running on port 8080
-- Check `VITE_API_URL` in frontend environment
-- Ensure CORS is configured (already enabled in backend)
+### MCP Server Issues
 
-## 📝 License
+**Symptom:** MCP tools not appearing in editor
+```bash
+# Verify MCP server build
+cd mcp-server
+npm run build
 
-MIT
+# Check for TypeScript errors
+npm run type-check
 
-## 🤝 Contributing
+# Test MCP server directly
+node dist/index.js
+```
 
-Contributions are welcome! Please feel free to submit a Pull Request.
+**Symptom:** "GitHub authentication failed"
+- Ensure PAT has `repo` scope
+- Verify token hasn't expired
+- Check repository permissions for GITHUB_OWNER/GITHUB_REPO
 
+### Frontend Issues
+
+**Symptom:** Cannot connect to backend API
+```bash
+# Verify backend is running
+curl http://localhost:8080/api/health
+
+# Check CORS configuration (already enabled)
+# Check frontend API URL configuration
+cat frontend/.env | grep VITE_API_URL
+```
+
+**Symptom:** Build errors with Vite
+```bash
+# Clear node modules and reinstall
+rm -rf node_modules package-lock.json
+npm install
+
+# Clear Vite cache
+rm -rf .vite
+```
+
+---
+
+## Performance Considerations
+
+### Caching Strategy
+
+- **Redis**: Caches GitHub API responses (5-minute TTL)
+- **PostgreSQL**: Full-text search on context snapshots
+- **Backend**: Spring Boot caching annotations on expensive operations
+
+### Scaling Recommendations
+
+**Horizontal Scaling:**
+- Backend: Stateless Spring Boot instances behind load balancer
+- MCP Server: One instance per developer (local process)
+- Frontend: CDN distribution for static assets
+
+**Vertical Scaling:**
+- PostgreSQL: Increase `shared_buffers` for larger datasets
+- Redis: Increase `maxmemory` for larger cache
+
+**Database Optimization:**
+- Regular `VACUUM ANALYZE` on high-write tables
+- Partition `developer_context` by month for large datasets
+- Index tuning based on query patterns
+
+---
+
+## Security Best Practices
+
+1. **Never commit `.env` files** — Use `.env.example` as template
+2. **Rotate GitHub PATs regularly** — Generate new tokens quarterly
+3. **Use Docker secrets** — For production deployments, use Docker secrets or vault solutions
+4. **Network isolation** — Keep PostgreSQL and Redis on private networks
+5. **API authentication** — Add authentication layer for production (OAuth2/JWT)
+
+---
+
+## Contributing
+Please follow these guidelines:
+
+1. **Fork** the repository
+2. **Create feature branch** (`git checkout -b feature/amazing-feature`)
+3. **Write tests** for new functionality
+4. **Follow code style** (see Development Workflow section)
+5. **Commit with clear messages** (Conventional Commits format)
+6. **Push to branch** (`git push origin feature/amazing-feature`)
+7. **Open Pull Request** with detailed description
+
+---
+
+## License
+
+MIT License — See [LICENSE](LICENSE) file for details.
