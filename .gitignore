@@ -1,3 +1,4 @@
+ HEAD
 # Java
 backend/target/
 backend/.mvn/
@@ -36,3 +37,11 @@ logs/
 # Docker
 .docker/
 
+.DS_Store
+**/node_modules
+**/dist
+**/target
+**/.idea
+**/.vscode
+**/.env
+ 71dae5549ce5dc7349e3823465ca284186e3097e
