@@ -1,0 +1,38 @@
+# Java
+backend/target/
+backend/.mvn/
+backend/.classpath
+backend/.project
+backend/.settings/
+
+# Node.js
+mcp-server/node_modules/
+mcp-server/dist/
+mcp-server/.env
+frontend/node_modules/
+frontend/dist/
+frontend/.env
+
+# IDE
+.idea/
+.vscode/
+*.iml
+*.swp
+*.swo
+*~
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Environment
+.env
+.env.local
+
+# Logs
+*.log
+logs/
+
+# Docker
+.docker/
+

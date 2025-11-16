@@ -1,0 +1,45 @@
+spring:
+  application:
+    name: neurosync-backend
+  
+  datasource:
+    url: ${SPRING_DATASOURCE_URL:jdbc:postgresql://localhost:5432/neurosync}
+    username: ${SPRING_DATASOURCE_USERNAME:neurosync}
+    password: ${SPRING_DATASOURCE_PASSWORD:neurosync_password}
+    driver-class-name: org.postgresql.Driver
+  
+  jpa:
+    hibernate:
+      ddl-auto: update
+    show-sql: false
+    properties:
+      hibernate:
+        dialect: org.hibernate.dialect.PostgreSQLDialect
+        format_sql: true
+  
+  data:
+    redis:
+      host: ${SPRING_DATA_REDIS_HOST:localhost}
+      port: ${SPRING_DATA_REDIS_PORT:6379}
+      timeout: 2000ms
+  
+  jackson:
+    serialization:
+      write-dates-as-timestamps: false
+
+server:
+  port: 8080
+
+github:
+  token: ${GITHUB_TOKEN:}
+  owner: ${GITHUB_OWNER:}
+  repo: ${GITHUB_REPO:}
+
+openai:
+  api-key: ${OPENAI_API_KEY:}
+
+logging:
+  level:
+    com.neurosync: INFO
+    org.springframework.web: INFO
+

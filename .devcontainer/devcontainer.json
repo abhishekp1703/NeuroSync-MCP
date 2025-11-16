@@ -1,0 +1,56 @@
+{
+  "name": "NeuroSync MCP Development",
+  "dockerComposeFile": "../docker-compose.yml",
+  "service": "backend",
+  "workspaceFolder": "/workspace",
+  "shutdownAction": "stopCompose",
+  
+  "customizations": {
+    "vscode": {
+      "extensions": [
+        "vscjava.vscode-java-pack",
+        "dbaeumer.vscode-eslint",
+        "esbenp.prettier-vscode",
+        "ms-vscode.vscode-typescript-next"
+      ],
+      "settings": {
+        "java.home": "/usr/lib/jvm/java-21-openjdk",
+        "java.configuration.runtimes": [
+          {
+            "name": "JavaSE-21",
+            "path": "/usr/lib/jvm/java-21-openjdk"
+          }
+        ]
+      }
+    }
+  },
+  
+  "forwardPorts": [8080, 5173, 5432, 6379, 3001],
+  "portsAttributes": {
+    "8080": {
+      "label": "Backend API",
+      "onAutoForward": "notify"
+    },
+    "5173": {
+      "label": "Frontend Dev Server",
+      "onAutoForward": "notify"
+    },
+    "5432": {
+      "label": "PostgreSQL",
+      "onAutoForward": "silent"
+    },
+    "6379": {
+      "label": "Redis",
+      "onAutoForward": "silent"
+    },
+    "3001": {
+      "label": "MCP Server",
+      "onAutoForward": "silent"
+    }
+  },
+  
+  "postCreateCommand": "cd backend && mvn install -DskipTests && cd ../mcp-server && npm install && cd ../frontend && npm install",
+  
+  "remoteUser": "root"
+}
+
